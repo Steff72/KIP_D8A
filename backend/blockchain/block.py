@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from typing import Any, Callable, Mapping
 
 from backend import config
@@ -139,5 +139,9 @@ class Block:
 
         if block.hash != reconstructed_hash:
             raise ValueError("block hash must be correct")
+
+    def to_dict(self) -> dict:
+        """Serialize the block for JSON responses."""
+        return asdict(self)
 
 __all__ = ["Block", "GENESIS_DATA"]

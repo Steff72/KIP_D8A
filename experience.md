@@ -5,3 +5,7 @@ Codex helped me bootstrap the environment today. After reviewing the concept and
 ### Standing up the blockchain core
 
 I paired with Codex to create the initial `backend/` package structure and the first slice of real functionality. We used TDD to define the behavior for hashing utilities, blocks, and the blockchain (mining, validation, and safe chain replacement), then implemented the modules plus a lightweight `conftest.py` so pytest can import the new package cleanly. The existing backend tests were refreshed to reflect the new architecture, and wallet/transaction suites are temporarily skipped until those modules exist. All ledger-related tests are now green, giving me confidence to tackle networking and wallet milestones next.
+
+### Wiring up the Flask API
+
+With the ledger solid, Codex and I layered on the first Flask interface. We followed TDD again: authored `backend/tests/test_app.py` to lock in expected behavior for `GET /api/chain`, `POST /api/blocks`, and basic validation errors, then added `backend/app.py` plus a `Block.to_dict()` helper so responses serialize cleanly. The app factory accepts an injected `Blockchain`, which made the tests trivial and sets us up for future dependency injection (PubNub, persistence, etc.). All tests are passing after the addition, so the project now has a usable HTTP surface for the upcoming frontend/network milestones.
