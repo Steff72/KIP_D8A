@@ -7,7 +7,7 @@ from backend.blockchain.blockchain import Blockchain
 @pytest.fixture
 def api_client():
     """Provide a Flask test client paired with a dedicated blockchain instance."""
-    blockchain = Blockchain(difficulty=1)
+    blockchain = Blockchain()
     app = create_app(blockchain=blockchain)
     app.config.update(TESTING=True)
 
@@ -46,4 +46,3 @@ def test_post_blocks_requires_payload(api_client):
     assert response.status_code == 400
     payload = response.get_json()
     assert "data" in payload["message"]
-

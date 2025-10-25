@@ -13,7 +13,7 @@ def test_blockchain_starts_with_genesis():
 
 
 def test_add_block_appends_mined_block():
-    blockchain = Blockchain(difficulty=2)
+    blockchain = Blockchain()
     payload = {"amount": 5}
     new_block = blockchain.add_block(
         payload,
@@ -21,12 +21,12 @@ def test_add_block_appends_mined_block():
     )
 
     assert new_block.data == payload
-    assert new_block.previous_hash == blockchain.chain[-2].hash
+    assert new_block.last_hash == blockchain.chain[-2].hash
     assert blockchain.last_block == new_block
 
 
 def test_is_valid_chain_detects_tampering():
-    blockchain = Blockchain(difficulty=1)
+    blockchain = Blockchain()
     blockchain.add_block("one", timestamp_provider=lambda: 1.0)
     blockchain.add_block("two", timestamp_provider=lambda: 2.0)
 
@@ -40,10 +40,10 @@ def test_is_valid_chain_detects_tampering():
 
 
 def test_replace_chain_prefers_longer_valid_chain():
-    blockchain = Blockchain(difficulty=1)
+    blockchain = Blockchain()
     blockchain.add_block("a", timestamp_provider=lambda: 1.0)
 
-    challenger = Blockchain(difficulty=1)
+    challenger = Blockchain()
     challenger.add_block("a", timestamp_provider=lambda: 1.0)
     challenger.add_block("b", timestamp_provider=lambda: 2.0)
 
@@ -52,14 +52,14 @@ def test_replace_chain_prefers_longer_valid_chain():
 
 
 def test_replace_chain_rejects_shorter_or_invalid_chain():
-    blockchain = Blockchain(difficulty=1)
+    blockchain = Blockchain()
     blockchain.add_block("a", timestamp_provider=lambda: 1.0)
 
-    shorter = Blockchain(difficulty=1)
+    shorter = Blockchain()
 
     assert not blockchain.replace_chain(shorter.chain)
 
     invalid = list(blockchain.chain)
-    invalid[1] = dataclasses.replace(invalid[1], previous_hash="corrupt")
+    invalid[1] = dataclasses.replace(invalid[1], last_hash="corrupt")
 
     assert not blockchain.replace_chain(invalid)

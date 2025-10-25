@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Iterable, List, Sequence
 
 from backend.blockchain.block import Block
-from backend import config
 
 
 class Blockchain:
@@ -14,8 +13,7 @@ class Blockchain:
     of this class without needing to modify its proof-of-work guarantees.
     """
 
-    def __init__(self, *, difficulty: int | None = None) -> None:
-        self._difficulty = difficulty or config.DEFAULT_DIFFICULTY
+    def __init__(self) -> None:
         self.chain: List[Block] = [Block.genesis()]
 
     @property
@@ -27,7 +25,6 @@ class Blockchain:
         block = Block.mine_block(
             self.last_block,
             data,
-            difficulty=self._difficulty,
             timestamp_provider=timestamp_provider,
         )
         self.chain.append(block)
@@ -68,4 +65,3 @@ class Blockchain:
 
 
 __all__ = ["Blockchain"]
-

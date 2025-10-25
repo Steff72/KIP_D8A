@@ -15,7 +15,7 @@ GENESIS_DATA: Mapping[str, Any] = {
     "index": config.GENESIS_INDEX,
     "timestamp": config.GENESIS_TIMESTAMP,
     "data": config.GENESIS_DATA,
-    "previous_hash": config.GENESIS_PREVIOUS_HASH,
+    "last_hash": config.GENESIS_PREVIOUS_HASH,
     "nonce": 0,
     "difficulty": config.DEFAULT_DIFFICULTY,
 }
@@ -23,7 +23,7 @@ GENESIS_HASH = crypto_hash(
     GENESIS_DATA["index"],
     GENESIS_DATA["timestamp"],
     GENESIS_DATA["data"],
-    GENESIS_DATA["previous_hash"],
+    GENESIS_DATA["last_hash"],
     GENESIS_DATA["nonce"],
     GENESIS_DATA["difficulty"],
 )
@@ -42,7 +42,7 @@ class Block:
     index: int
     timestamp: float
     data: Any
-    previous_hash: str
+    last_hash: str
     nonce: int
     difficulty: int
     hash: str
@@ -53,12 +53,12 @@ class Block:
         index: int,
         timestamp: float,
         data: Any,
-        previous_hash: str,
+        last_hash: str,
         nonce: int,
         difficulty: int,
     ) -> str:
         """Return the SHA-256 hash representing the block payload."""
-        return crypto_hash(index, timestamp, data, previous_hash, nonce, difficulty)
+        return crypto_hash(index, timestamp, data, last_hash, nonce, difficulty)
 
     @classmethod
     def create(
@@ -67,7 +67,7 @@ class Block:
         index: int,
         timestamp: float,
         data: Any,
-        previous_hash: str,
+        last_hash: str,
         nonce: int,
         difficulty: int,
     ) -> "Block":
@@ -76,11 +76,11 @@ class Block:
             index=index,
             timestamp=timestamp,
             data=data,
-            previous_hash=previous_hash,
+            last_hash=last_hash,
             nonce=nonce,
             difficulty=difficulty,
         )
-        return cls(index, timestamp, data, previous_hash, nonce, difficulty, block_hash)
+        return cls(index, timestamp, data, last_hash, nonce, difficulty, block_hash)
 
     @classmethod
     def genesis(cls) -> "Block":
@@ -93,22 +93,21 @@ class Block:
         last_block: "Block",
         data: Any,
         *,
-        difficulty: int | None = None,
         timestamp_provider: TimestampProvider | None = None,
     ) -> "Block":
         """Perform a simple proof-of-work to mine the next block."""
         timestamp_provider = timestamp_provider or time.time
-        difficulty = difficulty or last_block.difficulty or config.DEFAULT_DIFFICULTY
         nonce = 0
         index = last_block.index + 1
 
         while True:
             timestamp = timestamp_provider()
+            difficulty = cls.adjust_difficulty(last_block, timestamp)
             block_hash = cls.calculate_hash(
                 index=index,
                 timestamp=timestamp,
                 data=data,
-                previous_hash=last_block.hash,
+                last_hash=last_block.hash,
                 nonce=nonce,
                 difficulty=difficulty,
             )
@@ -117,10 +116,22 @@ class Block:
             nonce += 1
 
     @staticmethod
+    def adjust_difficulty(last_block: "Block", new_timestamp: float) -> int:
+        """Adjust difficulty relative to how quickly the block is mined."""
+        difficulty = last_block.difficulty
+
+        if (new_timestamp - last_block.timestamp) < config.DEFAULT_MINE_RATE_SECONDS:
+            difficulty += 1
+        else:
+            difficulty = max(1, difficulty - 1)
+
+        return difficulty
+
+    @staticmethod
     def is_valid_block(last_block: "Block", block: "Block") -> None:
         """Validate a block relative to the previous block in the chain."""
-        if block.previous_hash != last_block.hash:
-            raise ValueError("previous_hash must reference the last block")
+        if block.last_hash != last_block.hash:
+            raise ValueError("last_hash must reference the previous block")
 
         if block.index != last_block.index + 1:
             raise ValueError("block index must increment sequentially")
@@ -128,11 +139,14 @@ class Block:
         if not block.hash.startswith("0" * block.difficulty):
             raise ValueError("proof-of-work requirement was not met")
 
+        if abs(block.difficulty - last_block.difficulty) > 1:
+            raise ValueError("difficulty must only adjust by 1 between blocks")
+
         reconstructed_hash = Block.calculate_hash(
             index=block.index,
             timestamp=block.timestamp,
             data=block.data,
-            previous_hash=block.previous_hash,
+            last_hash=block.last_hash,
             nonce=block.nonce,
             difficulty=block.difficulty,
         )
