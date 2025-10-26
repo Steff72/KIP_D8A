@@ -63,3 +63,31 @@ def test_replace_chain_rejects_shorter_or_invalid_chain():
     invalid[1] = dataclasses.replace(invalid[1], last_hash="corrupt")
 
     assert not blockchain.replace_chain(invalid)
+
+
+def test_try_add_block_appends_valid_peer_block():
+    blockchain = Blockchain()
+    new_block = Block.mine_block(
+        blockchain.last_block,
+        data="network",
+        timestamp_provider=lambda: blockchain.last_block.timestamp + 10.0,
+    )
+
+    appended = blockchain.try_add_block(new_block)
+
+    assert appended is True
+    assert blockchain.last_block == new_block
+
+
+def test_try_add_block_rejects_invalid_block():
+    blockchain = Blockchain()
+    block = Block.create(
+        index=1,
+        timestamp=1.0,
+        data="bad",
+        last_hash="not-matching",
+        nonce=0,
+        difficulty=1,
+    )
+
+    assert blockchain.try_add_block(block) is False

@@ -158,4 +158,31 @@ class Block:
         """Serialize the block for JSON responses."""
         return asdict(self)
 
+    @classmethod
+    def from_dict(cls, payload: Mapping[str, Any]) -> "Block":
+        """Recreate a Block instance from its serialized representation."""
+        required_keys = {
+            "index",
+            "timestamp",
+            "data",
+            "last_hash",
+            "nonce",
+            "difficulty",
+            "hash",
+        }
+        missing_keys = required_keys.difference(payload.keys())
+        if missing_keys:
+            missing = ", ".join(sorted(missing_keys))
+            raise ValueError(f"Missing block fields: {missing}")
+
+        return cls(
+            index=payload["index"],
+            timestamp=payload["timestamp"],
+            data=payload["data"],
+            last_hash=payload["last_hash"],
+            nonce=payload["nonce"],
+            difficulty=payload["difficulty"],
+            hash=payload["hash"],
+        )
+
 __all__ = ["Block", "GENESIS_DATA"]

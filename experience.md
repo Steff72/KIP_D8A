@@ -17,3 +17,13 @@ Today’s focus with Codex was on the consensus mechanics. We tightened `Block` 
 ### Documenting the setup
 
 To make onboarding easier, Codex helped me write a concise `README.md` that explains the project at a high level and walks through the usual steps (create a venv, install `requirements.txt`, run `pytest`, and start the Flask API via `FLASK_APP=backend.app:create_app`). This should keep future me—and anyone else who clones the repo—productive without hunting through concept docs for basic commands.
+
+### Networking and synchronization
+
+Today we focused on treating every Flask process like a real network participant. Codex and I:
+- Extended `Block`/`Blockchain` with richer serialization plus `try_add_block`, and beefed up the tests to cover difficulty adjustments and incoming block validation.
+- Added `backend/pubsub.py`, a PubNub wrapper + listener that broadcasts mined blocks/chains and validates anything it receives before touching the ledger. Tests cover both the broadcast path and listener behavior.
+- Created `backend/peer.py` so new nodes can hit `/api/chain` on any `PEER_SEEDS` URL, deserialize the response, and adopt the longest valid chain before joining the pub/sub streams.
+- Updated `backend/app.py` to wire in these services, expose the REST endpoints, and optionally skip networking pieces for tests. The README now documents the environment variables (`PUBNUB_*`, `PEER_SEEDS`) and shows how to run multiple nodes on different ports.
+
+The full test suite (including the new networking specs) is passing, so we have a solid base for distributed consensus experiments.

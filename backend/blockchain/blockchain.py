@@ -30,6 +30,16 @@ class Blockchain:
         self.chain.append(block)
         return block
 
+    def try_add_block(self, block: Block) -> bool:
+        """Attempt to append a peer-provided block after validation."""
+        try:
+            Block.is_valid_block(self.last_block, block)
+        except ValueError:
+            return False
+
+        self.chain.append(block)
+        return True
+
     @staticmethod
     def is_valid_chain(chain: Sequence[Block]) -> bool:
         """Return True if the provided chain is valid."""

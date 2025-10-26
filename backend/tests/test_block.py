@@ -104,3 +104,18 @@ def test_difficulty_never_drops_below_one():
     adjusted = Block.adjust_difficulty(last_block, new_timestamp)
 
     assert adjusted == 1
+
+
+def test_block_round_trip_serialization():
+    block = Block.create(
+        index=1,
+        timestamp=123.0,
+        data={"demo": True},
+        last_hash="abc",
+        nonce=5,
+        difficulty=2,
+    )
+
+    restored = Block.from_dict(block.to_dict())
+
+    assert restored == block

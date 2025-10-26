@@ -37,3 +37,32 @@ The development server listens on `http://127.0.0.1:5000` by default with the fo
 
 Use these routes locally or point other nodes/frontends at the server to share the chain state.
 
+## Pub/Sub & Peer Synchronization
+
+- PubNub is used to broadcast new blocks and full-chain snapshots. Provide your keys via:
+  - `PUBNUB_SUBSCRIBE_KEY`
+  - `PUBNUB_PUBLISH_KEY`
+  - Optional overrides: `PUBNUB_UUID`, `PUBNUB_BLOCK_CHANNEL`, `PUBNUB_CHAIN_CHANNEL`
+- Nodes can automatically sync from existing peers on startup by setting `PEER_SEEDS` to a comma-separated list of base URLs (e.g., `PEER_SEEDS=http://127.0.0.1:5000`).
+
+## Running Multiple Nodes
+
+Start one node on the default port:
+
+```bash
+source .venv/bin/activate
+export FLASK_APP=backend.app:create_app
+flask run --port 5000
+```
+
+Then start a second node that syncs from the first and broadcasts over PubNub:
+
+```bash
+source .venv/bin/activate
+export FLASK_APP=backend.app:create_app
+export FLASK_RUN_PORT=5001
+export PEER_SEEDS=http://127.0.0.1:5000
+flask run --port 5001
+```
+
+Each process maintains its own blockchain instance but converges on a shared ledger through the peer-sync bootstrap and the PubNub pub/sub channels.
