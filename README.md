@@ -22,6 +22,11 @@ source .venv/bin/activate
 pytest
 ```
 
+## Wallets & Transactions
+
+- Wallets are defined in `backend/wallet/wallet.py`; they generate SECP256k1 key pairs, derive deterministic addresses, and expose helper functions for signing/verification.
+- Transactions live in `backend/wallet/transaction.py`, providing factories, update helpers, and validation routines that ensure outputs balance with the sender's input and signatures remain intact.
+
 ## Running the Flask API
 
 ```bash

@@ -27,3 +27,7 @@ Today we focused on treating every Flask process like a real network participant
 - Updated `backend/app.py` to wire in these services, expose the REST endpoints, and optionally skip networking pieces for tests. The README now documents the environment variables (`PUBNUB_*`, `PEER_SEEDS`) and shows how to run multiple nodes on different ports.
 
 The full test suite (including the new networking specs) is passing, so we have a solid base for distributed consensus experiments.
+
+### Wallets and signed transactions
+
+Codex and I just landed the cryptographic backbone. Wallets now generate SECP256k1 key pairs, derive human-friendly addresses, and expose helpers for deterministic signing and verification. Transactions capture sender/recipient outputs, re-sign themselves on updates, and serialize cleanly for network hops. Validation enforces that outputs balance with the sender’s balance and that signatures align with the claimed address. The new pytest coverage exercises wallet signing, transaction updates, serialization, and both positive/negative validation paths.

@@ -6,4 +6,4 @@ transactions, wallets, etc.) can be layered on top of the foundational
 Block and Blockchain implementations provided in this commit.
 """
 
-__all__ = ["app", "blockchain", "peer", "pubsub", "util"]
+__all__ = ["app", "blockchain", "peer", "pubsub", "util", "wallet"]
