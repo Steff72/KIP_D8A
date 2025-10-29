@@ -1,6 +1,15 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import "./App.css";
 import logo from "./assets/coin.png";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faWallet,
+  faCoins,
+  faSwimmingPool,
+  faHammer,
+  faPaperPlane,
+  faAddressBook,
+} from "@fortawesome/free-solid-svg-icons";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
@@ -40,6 +49,27 @@ function App() {
   const [formState, setFormState] = useState({ recipient: "", amount: "" });
 
   const latestBlock = chain.length > 0 ? chain[chain.length - 1] : null;
+
+  const knownAddresses = useMemo(() => {
+    const addresses = new Set();
+    chain.forEach((block) => {
+      if (!Array.isArray(block.data)) {
+        return;
+      }
+      block.data.forEach((item) => {
+        if (!item?.output) {
+          return;
+        }
+        Object.keys(item.output).forEach((address) => {
+          if (!address || address === walletInfo?.address) {
+            return;
+          }
+          addresses.add(address);
+        });
+      });
+    });
+    return Array.from(addresses);
+  }, [chain, walletInfo]);
 
   const fetchJson = useCallback(async (url, init) => {
     const response = await fetch(`${API_BASE_URL}${url}`, {
@@ -144,7 +174,9 @@ function App() {
       <main className="app-main">
         <section className="row">
           <article className="panel wallet-panel">
-            <h2>My Wallet</h2>
+            <h2>
+              My Wallet <FontAwesomeIcon icon={faWallet} />
+            </h2>
             {walletInfo ? (
               <div className="wallet-panel__body">
                 <p>
@@ -160,7 +192,9 @@ function App() {
           </article>
 
           <article className="panel send-panel">
-            <h2>Make a Transaction</h2>
+            <h2>
+              Make a Transaction <FontAwesomeIcon icon={faCoins} />
+            </h2>
             <form className="send-form" onSubmit={handleSubmitTransaction}>
               <label htmlFor="recipient">Recipient</label>
               <input
@@ -186,15 +220,31 @@ function App() {
                 }
               />
               <button type="submit" className="button primary">
-                Submit
+                Submit <FontAwesomeIcon icon={faPaperPlane} />
               </button>
             </form>
+            <div className="known-addresses">
+              <h3>
+                Known Addresses <FontAwesomeIcon icon={faAddressBook} />
+              </h3>
+              {knownAddresses.length > 0 ? (
+                <div className="known-addresses__list">
+                  {knownAddresses.map((address) => (
+                    <span key={address}>{formatHash(address, 18)}</span>
+                  ))}
+                </div>
+              ) : (
+                <p className="muted">None so far…</p>
+              )}
+            </div>
           </article>
         </section>
 
         <section className="row">
           <article className="panel pool-panel">
-            <h2>Transaction Pool</h2>
+            <h2>
+              Transaction Pool <FontAwesomeIcon icon={faSwimmingPool} />
+            </h2>
             {transactions.length === 0 ? (
               <p className="muted">No open transactions.</p>
             ) : (
@@ -217,7 +267,8 @@ function App() {
               </ul>
             )}
             <button type="button" className="button" onClick={handleMineBlock} disabled={isMining}>
-              {isMining ? "Mining…" : "Mine a new Block"}
+              {isMining ? "Mining…" : "Mine a new Block"}{" "}
+              <FontAwesomeIcon icon={faHammer} />
             </button>
           </article>
 

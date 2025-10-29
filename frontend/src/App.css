@@ -111,6 +111,25 @@
   outline-offset: 2px;
 }
 
+.known-addresses {
+  margin-top: 1.75rem;
+  text-align: center;
+}
+
+.known-addresses h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.known-addresses__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.2rem;
+  justify-content: center;
+  font-weight: 600;
+}
+
 .button {
   border: 1px solid rgba(255, 255, 255, 0.7);
   border-radius: 30px;
