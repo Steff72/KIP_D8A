@@ -12,6 +12,7 @@ import time
 from typing import Any, Dict, Optional
 from uuid import uuid4
 
+from backend import config
 from backend.wallet.wallet import Wallet, derive_address, public_key_from_hex, verify_signature
 
 
@@ -110,6 +111,21 @@ def create_transaction(sender_wallet: Wallet, recipient: str, amount: int) -> Tr
     return transaction
 
 
+def create_reward_transaction(miner_wallet: Wallet) -> Transaction:
+    """
+    Create the special mining reward transaction awarded to block miners.
+    """
+
+    transaction = Transaction()
+    transaction.output = {miner_wallet.address: config.MINING_REWARD_AMOUNT}
+    transaction.input = {
+        "timestamp": _current_timestamp(),
+        "amount": config.MINING_REWARD_AMOUNT,
+        "address": config.MINING_REWARD_ADDRESS,
+    }
+    return transaction
+
+
 def is_valid_transaction(transaction: Transaction) -> bool:
     """
     Validate that a transaction's outputs and signature are consistent.
@@ -122,6 +138,16 @@ def is_valid_transaction(transaction: Transaction) -> bool:
 
     input_payload = transaction.input
     output_total = sum(transaction.output.values())
+    input_address = input_payload.get("address")
+
+    if input_address == config.MINING_REWARD_ADDRESS:
+        if len(transaction.output) != 1:
+            raise ValueError("Mining reward must target a single address.")
+        if output_total != config.MINING_REWARD_AMOUNT:
+            raise ValueError("Mining reward amount is invalid.")
+        if input_payload.get("amount") != config.MINING_REWARD_AMOUNT:
+            raise ValueError("Mining reward input amount is invalid.")
+        return True
 
     if output_total != input_payload["amount"]:
         raise ValueError("Transaction outputs do not match input amount.")
@@ -137,3 +163,11 @@ def is_valid_transaction(transaction: Transaction) -> bool:
         raise ValueError("Address does not match public key.")
 
     return True
+
+
+__all__ = [
+    "Transaction",
+    "create_transaction",
+    "create_reward_transaction",
+    "is_valid_transaction",
+]

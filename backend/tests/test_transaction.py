@@ -1,7 +1,9 @@
 import pytest
 
+from backend import config
 from backend.wallet.transaction import (
     Transaction,
+    create_reward_transaction,
     create_transaction,
     is_valid_transaction,
 )
@@ -75,3 +77,24 @@ def test_transaction_serialization_round_trip():
     restored = Transaction.from_dict(transaction.to_dict())
     assert restored.output == transaction.output
     assert restored.input == transaction.input
+
+
+def test_create_reward_transaction_targets_miner():
+    miner = Wallet()
+
+    reward = create_reward_transaction(miner)
+
+    assert reward.output[miner.address] == config.MINING_REWARD_AMOUNT
+    assert reward.input["address"] == config.MINING_REWARD_ADDRESS
+    assert reward.input["amount"] == config.MINING_REWARD_AMOUNT
+    assert is_valid_transaction(reward) is True
+
+
+def test_invalid_reward_transaction_is_rejected():
+    miner = Wallet()
+    reward = create_reward_transaction(miner)
+
+    reward.output[miner.address] = config.MINING_REWARD_AMOUNT + 1
+
+    with pytest.raises(ValueError, match="Mining reward amount is invalid"):
+        is_valid_transaction(reward)

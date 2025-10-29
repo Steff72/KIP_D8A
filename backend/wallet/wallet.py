@@ -10,11 +10,14 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass
-from typing import Any, Tuple
+from typing import Any, Tuple, TYPE_CHECKING
 
 from ecdsa import BadSignatureError, SECP256k1, SigningKey, VerifyingKey
 
 from backend import config
+
+if TYPE_CHECKING:
+    from backend.blockchain.blockchain import Blockchain
 
 
 def _serialize(data: Any) -> str:
@@ -132,9 +135,48 @@ class Wallet:
 
         return verify_signature(public_key, data, signature)
 
+    def calculate_balance(self, blockchain: "Blockchain") -> int:
+        """
+        Recompute this wallet's balance by scanning the blockchain ledger.
+        """
+
+        return calculate_balance(blockchain, self.address)
+
+
+def calculate_balance(blockchain: "Blockchain", address: str) -> int:
+    """
+    Derive the effective balance for ``address`` based on blockchain history.
+    """
+
+    balance = config.STARTING_BALANCE
+
+    for block in blockchain.chain:
+        data = block.data
+        if not isinstance(data, list):
+            continue
+
+        for item in data:
+            if not isinstance(item, dict):
+                continue
+
+            output_map = item.get("output") or {}
+            input_payload = item.get("input") or {}
+            input_address = input_payload.get("address")
+
+            if input_address == address:
+                balance = output_map.get(address, 0)
+                continue
+
+            received = output_map.get(address)
+            if received is not None:
+                balance += received
+
+    return balance
+
 
 __all__ = [
     "Wallet",
+    "calculate_balance",
     "derive_address",
     "generate_key_pair",
     "public_key_from_hex",
