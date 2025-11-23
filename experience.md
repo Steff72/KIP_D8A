@@ -39,3 +39,16 @@ We closed the “ready for UI” gap today. Codex helped me wire in a proper min
 ### Aligning the UI with the finalized mockup
 
 The initial React layout felt too bespoke compared to the example provided, so Codex and I reworked the dashboard to mirror the official design: header with the D8A coin logo, card-based grid for wallet and pool info, and a transaction panel that matches the spacing/typography from the sample. While refactoring, we simplified the React components, refreshed the CSS theme (Quicksand font, #224058 palette), and trimmed the extra “known addresses” widget. On the backend we now serve the Vite build directly from `frontend/dist`, so hitting the Flask root URL loads the dashboard without a separate dev server. Fresh npm/pytest runs confirm both stacks remain healthy.
+
+### Moving to Antigravity and polishing the UI
+
+Today marked the transition from Codex to Antigravity. We immediately focused on refining the frontend experience to make it more dynamic and user-friendly.
+
+-   **Auto-refresh**: Implemented a polling mechanism in the React app so the dashboard automatically updates when new transactions or blocks arrive, removing the need for manual page reloads.
+-   **Address Display**: Improved how addresses are shown. We initially tried full addresses but settled on a truncated view with a "Copy" button for better aesthetics and usability.
+-   **Visual Overhaul**:
+    -   Replaced the generic coin logo with a custom "Tech Circuit" design, processed to have a transparent background for a seamless look.
+    -   Updated the header layout to be more compact, placing the logo inline with the title and removing the subtitle.
+    -   Fixed CSS truncation issues to ensure the UI handles long strings gracefully.
+
+The project is now running on Antigravity with a more polished and responsive frontend.
