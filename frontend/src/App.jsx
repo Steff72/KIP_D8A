@@ -9,6 +9,7 @@ import {
   faHammer,
   faPaperPlane,
   faAddressBook,
+  faCopy,
 } from "@fortawesome/free-solid-svg-icons";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
@@ -37,6 +38,30 @@ const formatTimestamp = (timestamp) => {
     minute: "2-digit",
     second: "2-digit",
   });
+};
+
+const CopyableAddress = ({ address, formatLen = 12 }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(address);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <span className="copyable-address">
+      {formatHash(address, formatLen)}
+      <button
+        type="button"
+        className="copy-button"
+        onClick={handleCopy}
+        title="Copy full address"
+      >
+        <FontAwesomeIcon icon={faCopy} className={copied ? "text-success" : ""} />
+      </button>
+    </span>
+  );
 };
 
 function App() {
@@ -104,6 +129,13 @@ function App() {
     refreshWallet();
     refreshTransactions();
     refreshChain();
+    const intervalId = setInterval(() => {
+      refreshWallet();
+      refreshTransactions();
+      refreshChain();
+    }, 2000);
+
+    return () => clearInterval(intervalId);
   }, [refreshChain, refreshTransactions, refreshWallet]);
 
   useEffect(() => {
@@ -164,10 +196,7 @@ function App() {
       <header className="app-header">
         <div className="app-header__content">
           <img src={logo} alt="D8A Coin" className="app-logo" />
-          <div>
-            <h1>D8A Coin Dashboard</h1>
-            <p>Keep tabs on your wallet, pending transactions, and the latest block.</p>
-          </div>
+          <h1>D8A Coin Dashboard</h1>
         </div>
       </header>
 
@@ -180,7 +209,8 @@ function App() {
             {walletInfo ? (
               <div className="wallet-panel__body">
                 <p>
-                  <span className="label">Address:</span> {formatHash(walletInfo.address, 16)}
+                  <span className="label">Address:</span>{" "}
+                  <CopyableAddress address={walletInfo.address} formatLen={16} />
                 </p>
                 <p>
                   <span className="label">Balance:</span> {walletInfo.balance} DBA
@@ -230,7 +260,7 @@ function App() {
               {knownAddresses.length > 0 ? (
                 <div className="known-addresses__list">
                   {knownAddresses.map((address) => (
-                    <span key={address}>{formatHash(address, 18)}</span>
+                    <CopyableAddress key={address} address={address} formatLen={18} />
                   ))}
                 </div>
               ) : (
@@ -258,7 +288,8 @@ function App() {
                       <span className="tx-id">{formatHash(transaction.id, 14)}</span>
                       {outputs.map(([address, amount]) => (
                         <div key={address}>
-                          <span className="label">To:</span> {formatHash(address, 14)} – {amount} DBA
+                          <span className="label">To:</span>{" "}
+                          <CopyableAddress address={address} formatLen={14} /> – {amount} DBA
                         </div>
                       ))}
                     </li>
@@ -309,7 +340,8 @@ function App() {
                           <div className="tx-outputs">
                             {Object.entries(tx?.output || {}).map(([address, amount]) => (
                               <span key={address}>
-                                {formatHash(address, 14)} → {amount} DBA
+                                <CopyableAddress address={address} formatLen={14} /> → {amount}{" "}
+                                DBA
                               </span>
                             ))}
                           </div>

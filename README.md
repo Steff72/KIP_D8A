@@ -49,10 +49,12 @@ Use these routes locally or point other nodes/frontends at the server to share t
 
 ## Pub/Sub & Peer Synchronization
 
-- PubNub is used to broadcast new blocks, full-chain snapshots, and pool transactions. Provide your keys via:
-  - `PUBNUB_SUBSCRIBE_KEY`
-  - `PUBNUB_PUBLISH_KEY`
-  - Optional overrides: `PUBNUB_UUID`, `PUBNUB_BLOCK_CHANNEL`, `PUBNUB_CHAIN_CHANNEL`, `PUBNUB_TRANSACTION_CHANNEL`
+- PubNub is used to broadcast new blocks, full-chain snapshots, and pool transactions.
+- **Important**: You must provide your own PubNub keys in a `.env` file in the root directory.
+  ```bash
+  PUBNUB_PUBLISH_KEY=your_publish_key
+  PUBNUB_SUBSCRIBE_KEY=your_subscribe_key
+  ```
 - Nodes can automatically sync from existing peers on startup by setting `PEER_SEEDS` to a comma-separated list of base URLs (e.g., `PEER_SEEDS=http://127.0.0.1:5000`).
 
 ## Running Multiple Nodes
@@ -101,3 +103,21 @@ VITE_API_BASE_URL=http://127.0.0.1:5001 npm run dev
 ```
 
 For a production build, run `npm run build`—the artifacts will be written to `frontend/dist/`.
+
+## Running Frontend Tests
+
+The frontend includes a Vitest test suite. Run it via:
+
+```bash
+cd frontend
+npm test
+```
+
+## Network Verification
+
+To verify that multiple nodes are syncing correctly (using your `.env` keys), run the included script:
+
+```bash
+python3 verify_network.py
+```
+
